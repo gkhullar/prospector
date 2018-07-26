@@ -61,7 +61,7 @@ def get_parser(fitter="dynesty"):
     parser.add_argument("--interval", type=float, default=0.2,
                         help=("Number between 0 and 1 giving the fraction of the "
                               "production run at which to write the curtrent chains to "
-                              "disk.  Useful in case the run dies.")
+                              "disk.  Useful in case the run dies."))
 
     # --- dynesty parameters ---
     parser.add_argument("--dynesty", type=bool, default=True,
