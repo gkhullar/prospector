@@ -101,7 +101,7 @@ def tage_from_tuniv(zred=0.0, tage_tuniv=1.0, **extras):
 def zred_to_agebins(zred=0.0, agebins=[], **extras):
     """Set the nonparameteric SFH age bins depending on the age of the universe
     at ``zred``. The first bin is not altered and the last bin is always 15% of
-    the upper edge of the oldest bin, but the intervenening bins are evenly
+    the upper edge of the oldest bin, but the intervening bins are evenly
     spaced in log(age).
 
     :param zred:
@@ -141,29 +141,30 @@ def dustratio_to_dust1(dust2=0.0, dust_ratio=0.0, **extras):
 # --------------------------------------
 
 def logsfr_ratios_to_masses(logmass=None, logsfr_ratios=None, agebins=None, **extras):
-    logsfr_ratios = np.clip(logsfr_ratios,-100,100) # numerical issues...
     nbins = agebins.shape[0]
-    sratios = 10**logsfr_ratios
-    dt = (10**agebins[:,1]-10**agebins[:,0])
-    coeffs = np.array([ (1./np.prod(sratios[:i])) * (np.prod(dt[1:i+1]) / np.prod(dt[:i])) for i in range(nbins)])
+    sratios = 10**np.clip(logsfr_ratios, -100, 100) # numerical issues...
+    dt = (10**agebins[:, 1] - 10**agebins[:, 0])
+    coeffs = np.array([ (1. / np.prod(sratios[:i])) * (np.prod(dt[1: i+1]) / np.prod(dt[: i]))
+                        for i in range(nbins)])
     m1 = (10**logmass) / coeffs.sum()
 
     return m1 * coeffs
 
-def logsfr_ratios_to_masses_flex(logmass=None, logsfr_ratio_young=None, logsfr_ratio_old=None, agebins=None, **extras):
-    logsfr_ratio_young = np.clip(logsfr_ratio_young,-100,100)
-    logsfr_ratio_old = np.clip(logsfr_ratio_old,-100,100)
+def logsfr_ratios_to_masses_flex(logmass=None, agebins=None,
+                                 logsfr_ratio_young=None, logsfr_ratio_old=None,  **extras):
+    logsfr_ratio_young = np.clip(logsfr_ratio_young, -100, 100)
+    logsfr_ratio_old = np.clip(logsfr_ratio_old, -100, 100)
 
-    nbins = agebins.shape[0]-2
+    nbins = agebins.shape[0] - 2
     syoung, sold = 10**logsfr_ratio_young, 10**logsfr_ratio_old
-    dtyoung, dt1 = (10**agebins[:2,1]-10**agebins[:2,0])
-    dtn, dtold = (10**agebins[-2:,1]-10**agebins[-2:,0])
+    dtyoung, dt1 = (10**agebins[:2, 1] - 10**agebins[:2, 0])
+    dtn, dtold = (10**agebins[-2:, 1] - 10**agebins[-2:, 0])
     mbin = (10**logmass) / (syoung*dtyoung/dt1 + sold*dtold/dtn + nbins)
-    myoung = syoung*mbin*dtyoung/dt1
-    mold = sold*mbin*dtold/dtn
+    myoung = syoung * mbin * dtyoung / dt1
+    mold = sold * mbin * dtold/dtn
     n_masses = np.full(nbins, mbin)
 
-    return np.array(myoung.tolist()+n_masses.tolist()+mold.tolist())
+    return np.array(myoung.tolist() + n_masses.tolist() + mold.tolist())
 
 def logsfr_ratios_to_agebins(logsfr_ratios=None, **extras):
     """this transforms from SFR ratios to agebins
@@ -176,12 +177,12 @@ def logsfr_ratios_to_agebins(logsfr_ratios=None, **extras):
     """
 
     # numerical stability
-    logsfr_ratios = np.clip(logsfr_ratios,-100,100)
+    logsfr_ratios = np.clip(logsfr_ratios, -100, 100)
 
     # calculate delta(t) for oldest, youngest bins (fixed)
-    lower_time = (10**agebins[0,1]-10**agebins[0,0])
-    upper_time = (10**agebins[-1,1]-10**agebins[-1,0])
-    tflex = (10**agebins[-1,-1]-upper_time-lower_time)
+    lower_time = (10**agebins[0, 1] - 10**agebins[0, 0])
+    upper_time = (10**agebins[-1, 1] - 10**agebins[-1, 0])
+    tflex = (10**agebins[-1,-1] - upper_time - lower_time)
 
     # figure out other bin sizes
     n_ratio = logsfr_ratios.shape[0]
@@ -190,7 +191,8 @@ def logsfr_ratios_to_agebins(logsfr_ratios=None, **extras):
 
     # translate into agelims vector (time bin edges)
     agelims = [1, lower_time, dt1+lower_time]
-    for i in range(n_ratio): agelims += [dt1*np.prod(sfr_ratios[:(i+1)]) + agelims[-1]]
+    for i in range(n_ratio):
+        agelims += [dt1*np.prod(sfr_ratios[:(i+1)]) + agelims[-1]]
     agelims += [tuniv[0]]
     agebins = np.log10([agelims[:-1], agelims[1:]]).T
 
