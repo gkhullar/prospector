@@ -220,6 +220,7 @@ def zfrac_to_sfrac(z_fraction=None, **extras):
         sfr_fraction[i] = np.prod(z_fraction[:i]) * (1.0 - z_fraction[i])
     sfr_fraction[-1] = 1 - np.sum(sfr_fraction[:-1])
 
+
     return sfr_fraction
 
 
@@ -254,6 +255,27 @@ def zfrac_to_masses(total_mass=None, z_fraction=None, agebins=None, **extras):
     masses = total_mass * mass_fraction
     return masses
 
+    # -- version of above for arrays of fractions --
+    #zf = np.atleast_2d(z_fraction)
+    #shape = list(zf.shape)
+    #shape[-1] += 1
+    #sfr_fraction = np.zeros(shape)
+    #sfr_fraction[..., 0] = 1.0 - z_fraction[..., 0]
+    #for i in range(1, shape[-1]-1):
+    #   sfr_fraction[..., i] = (np.prod(z_fraction[..., :i], axis=-1) *
+    #                            (1.0 - z_fraction[...,i]))
+    #sfr_fraction[..., -1] = 1 - np.sum(sfr_fraction[..., :-1], axis=-1)
+    #sfr_fraction = np.squeeze(sfr_fraction)
+    #
+    # convert to mass fractions
+    #time_per_bin = np.diff(10**agebins, axis=-1)[:,0]
+    #sfr_fraction *= np.array(time_per_bin)
+    #mtot = np.atleast_1d(sfr_fraction.sum(axis=-1))
+    #mass_fraction = sfr_fraction / mtot[:, None]
+    #
+    #masses = np.atleast_2d(total_mass) * mass_fraction.T
+    #return masses.T
+
 
 def zfrac_to_sfr(total_mass=None, z_fraction=None, agebins=None, **extras):
     """This transforms from independent dimensionless `z` variables to SFRs.
@@ -261,19 +283,8 @@ def zfrac_to_sfr(total_mass=None, z_fraction=None, agebins=None, **extras):
     :returns sfrs:
         The SFR in each age bin (msun/yr).
     """
-    # sfr fractions
-    sfr_fraction = np.zeros(len(z_fraction) + 1)
-    sfr_fraction[0] = 1.0 - z_fraction[0]
-    for i in range(1, len(z_fraction)):
-        sfr_fraction[i] = np.prod(z_fraction[:i]) * (1.0 - z_fraction[i])
-    sfr_fraction[-1] = 1 - np.sum(sfr_fraction[:-1])
-
-    # convert to mass fractions
-    time_per_bin = np.diff(10**agebins, axis=-1)[:, 0]
-    mass_fraction = sfr_fraction * np.array(time_per_bin)
-    mass_fraction /= mass_fraction.sum()
-
-    masses = total_mass * mass_fraction
+    time_per_bin = np.diff(10**agebins, axis=-1)[:,0]
+    masses = zfrac_to_masses(total_mass, z_fraction, agebins)
     return masses / time_per_bin
 
 
